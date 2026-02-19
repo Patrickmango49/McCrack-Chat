@@ -58,7 +58,7 @@
         #recent-rooms-container { margin-top: 30px; display: flex; flex-direction: column; gap: 10px; }
         #recent-rooms-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 5px; }
         #recent-rooms-list { display: flex; flex-direction: column; gap: 6px; }
-        .room-history-btn { background: #111 !important; border: 1px solid #222 !important; text-align: left !important; font-size: 13px !important; color: #888 !important; }
+        .room-history-btn { background: #111 !important; border: 1px solid #222 !important; text-align: left !important; font-size: 13px !important; color: #888 !important; cursor: pointer; }
         .room-history-btn:hover { border-color: #fff !important; color: #fff !important; }
 
         /* Chat Window */
@@ -76,6 +76,16 @@
 
         /* Images in chat */
         .chat-img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; border: 1px solid #333; cursor: zoom-in; }
+
+        /* Typing Indicator Styling */
+        #typing-indicator { 
+            padding: 0 30px 5px 30px; 
+            font-size: 11px; 
+            color: #555; 
+            height: 18px; 
+            font-style: italic; 
+            background: #000; 
+        }
 
         /* Input Area */
         #input-area { display:flex; padding:25px; background: #0a0a0a; gap: 10px; border-top: 1px solid #222; align-items: center; }
@@ -128,6 +138,7 @@
     <div id="chat-area">
         <div id="room-header">Welcome</div>
         <div id="chat"></div>
+        <div id="typing-indicator"></div>
         <div id="input-area">
             <input type="file" id="fileInput" accept="image/*" style="display:none">
             <button class="action-btn" id="uploadBtn" disabled>+</button>
@@ -157,6 +168,7 @@
     let activeRoom = "";
     let myUsername = "";
     let chatChannel = null;
+    let typingTimeout = null;
 
     const chatBox = document.getElementById("chat");
     const msgInput = document.getElementById("message-input");
@@ -168,6 +180,7 @@
     const roomInput = document.getElementById("room-name-input");
     const nameInput = document.getElementById("user-display-name");
     const recentRoomsList = document.getElementById("recent-rooms-list");
+    const typingIndicator = document.getElementById("typing-indicator");
 
     function renderRecentRooms() {
         const savedRooms = JSON.parse(localStorage.getItem("myRooms") || "[]");
@@ -257,10 +270,19 @@
         if (data) data.forEach(msg => addMessage(msg));
 
         if(chatChannel) await _supabase.removeChannel(chatChannel);
+        
         chatChannel = _supabase.channel(`room_${activeRoom}`)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room=eq.${activeRoom}` }, 
                 payload => addMessage(payload.new)
-            ).subscribe();
+            )
+            .on('broadcast', { event: 'typing' }, payload => {
+                if (payload.payload.user !== myUsername) {
+                    typingIndicator.innerText = `${payload.payload.user} is typing...`;
+                    clearTimeout(typingTimeout);
+                    typingTimeout = setTimeout(() => { typingIndicator.innerText = ""; }, 2000);
+                }
+            })
+            .subscribe();
     }
 
     function addMessage(msg) {
@@ -283,6 +305,17 @@
         chatBox.appendChild(div);
         chatBox.scrollTop = chatBox.scrollHeight;
     }
+
+    // Typing Event Trigger
+    msgInput.oninput = () => {
+        if (chatChannel) {
+            chatChannel.send({
+                type: 'broadcast',
+                event: 'typing',
+                payload: { user: myUsername }
+            });
+        }
+    };
 
     // Upload functionality
     uploadBtn.onclick = () => fileInput.click();
