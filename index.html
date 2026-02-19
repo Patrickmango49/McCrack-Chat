@@ -9,11 +9,10 @@
         * { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI', Roboto, sans-serif; }
         body, html { width:100%; height:100%; background:#0a0a0a; display:flex; justify-content:center; align-items:center; color: white; overflow: hidden; }
         
-        /* App Container */
-        #app { width:98%; max-width:1400px; height:95vh; display:flex; border-radius:20px; overflow:hidden; background:#161616; box-shadow:0 20px 50px rgba(0,0,0,0.5); border: 1px solid #2a2a2a; }
+        #app { width:98%; max-width:1400px; height:95vh; display:flex; border-radius:24px; overflow:hidden; background:#161616; box-shadow:0 25px 60px rgba(0,0,0,0.7); border: 1px solid #2a2a2a; }
         
-        /* Sidebar Styling */
-        #sidebar { width:280px; background:#111; padding:25px; display:flex; flex-direction:column; gap:15px; border-right: 1px solid #2a2a2a; flex-shrink: 0; }
+        /* Sidebar */
+        #sidebar { width:280px; background:#0f0f0f; padding:25px; display:flex; flex-direction:column; gap:15px; border-right: 1px solid #2a2a2a; flex-shrink: 0; }
         #sidebar h2 { color: #00aaff; letter-spacing: 2px; font-size: 28px; text-align: center; margin-bottom: 10px; font-weight: 800; }
         .input-group { display: flex; flex-direction: column; gap: 8px; }
         .input-group label { font-size: 10px; color: #555; font-weight: bold; letter-spacing: 1px; }
@@ -22,44 +21,42 @@
         #sidebar button { padding:12px; border:none; border-radius:10px; background:#00aaff; color:white; cursor:pointer; font-weight:bold; transition: 0.2s; }
         #sidebar button:hover { background:#00d4ff; transform: translateY(-2px); }
 
-        /* Recent Rooms List */
-        #recent-rooms-header { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-        .room-history-btn { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; text-align: left !important; font-size: 13px !important; margin-bottom: 5px; opacity: 0.8; }
-        .room-history-btn:hover { opacity: 1; border-color: #444 !important; }
+        /* Recent Rooms Section */
+        #recent-rooms-container { margin-top: 25px; display: flex; flex-direction: column; gap: 10px; }
+        #recent-rooms-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        #recent-rooms-list { display: flex; flex-direction: column; gap: 6px; }
+        .room-history-btn { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; text-align: left !important; font-size: 13px !important; opacity: 0.7; }
+        .room-history-btn:hover { opacity: 1; border-color: #00aaff !important; }
 
-        /* Chat Area */
-        #chat-area { flex:1; display:flex; flex-direction:column; background:#121212; }
-        #room-header { padding: 20px 30px; background: #1a1a1a; border-bottom: 1px solid #2a2a2a; font-weight: bold; color: #00aaff; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        /* Main Chat Window (Blurry B&W Gradient) */
+        #chat-area { 
+            flex:1; display:flex; flex-direction:column; 
+            background: linear-gradient(135deg, #121212 0%, #252525 100%); 
+            backdrop-filter: blur(20px); 
+        }
+        #room-header { padding: 20px 30px; background: rgba(26, 26, 26, 0.8); border-bottom: 1px solid #2a2a2a; font-weight: bold; color: #00aaff; font-size: 20px; }
         #chat { flex:1; overflow-y:auto; padding:30px; display:flex; flex-direction:column; gap:15px; }
         
-        /* Messages */
-        .message { max-width:75%; padding:12px 18px; border-radius:18px; font-size: 14px; background:#222; align-self:flex-start; line-height: 1.5; border-bottom-left-radius: 4px; }
-        .mine { background:#00aaff; align-self:flex-end; border-bottom-left-radius: 18px; border-bottom-right-radius: 4px; color: white; }
+        .message { max-width:75%; padding:12px 18px; border-radius:18px; font-size: 14px; background: rgba(50, 50, 50, 0.6); align-self:flex-start; line-height: 1.5; border: 1px solid rgba(255,255,255,0.05); }
+        .mine { background:#00aaff; align-self:flex-end; color: white; border: none; }
         .msg-info { display:block; font-size:10px; font-weight: bold; margin-bottom: 4px; opacity: 0.6; }
 
-        /* Input Bar */
-        #input-area { display:flex; padding:25px; background:#111; gap:15px; border-top: 1px solid #2a2a2a; }
-        #message-input { flex:1; padding:15px 25px; border-radius:30px; border:1px solid #2a2a2a; background:#1a1a1a; color:white; outline: none; transition: 0.3s; }
-        #message-input:focus { border-color: #00aaff; }
+        #input-area { display:flex; padding:25px; background: rgba(17, 17, 17, 0.9); gap: 15px; border-top: 1px solid #2a2a2a; }
+        #message-input { flex:1; padding:15px 25px; border-radius:30px; border:1px solid #2a2a2a; background:#1a1a1a; color:white; outline: none; }
         #sendBtn { padding:0 35px; border-radius:30px; border:none; background:#00aaff; color:white; cursor:pointer; font-weight:bold; }
 
-        /* MODAL STYLING (The "Nicer" Window) */
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter: blur(5px); justify-content:center; align-items:center; z-index:1000; transition: 0.3s; }
+        /* Modals */
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:1000; }
         .modal.show { display:flex; }
-        .modal-content { 
-            background:#1c1c1c; padding:40px; border-radius:24px; width:400px; 
-            display:flex; flex-direction:column; gap:20px; 
-            border: 1px solid #333; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-            transform: scale(0.9); transition: 0.3s;
-        }
-        .modal.show .modal-content { transform: scale(1); }
-        .modal-content h3 { color:#00aaff; text-align:center; font-size: 22px; margin-bottom: 5px; }
-        .modal-content input { padding:15px; border-radius:12px; border:1px solid #333; background:#111; color:white; outline: none; font-size: 16px; }
-        .modal-content button { padding:15px; border-radius:12px; border:none; font-weight:bold; cursor:pointer; }
-        .confirm-btn { background:#00aaff; color:white; }
-        .cancel-btn { background:transparent; color:#666; font-size: 13px; }
+        .modal-content { background:#1c1c1c; padding:40px; border-radius:24px; width:400px; display:flex; flex-direction:column; gap:20px; border: 1px solid #333; text-align: center; }
+        .modal-content input { padding:15px; border-radius:12px; border:1px solid #333; background:#111; color:white; outline: none; }
+        .confirm-btn { background:#00aaff; color:white; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .cancel-btn { background:transparent; color:#666; cursor: pointer; border: none; }
         
-        #status-display { margin-top: auto; font-size: 11px; color: #333; font-weight: bold; letter-spacing: 1px; }
+        /* Status Colors */
+        #status-display { margin-top: auto; font-size: 11px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; }
+        .status-online { color: #00ff88; text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+        .status-offline { color: #ff4444; text-shadow: 0 0 10px rgba(255,68,68,0.3); }
     </style>
 </head>
 <body>
@@ -83,14 +80,14 @@
             <div id="recent-rooms-list"></div>
         </div>
 
-        <div id="status-display">System: Connecting...</div>
+        <div id="status-display" class="status-offline">System: Connecting...</div>
     </div>
     
     <div id="chat-area">
-        <div id="room-header">Welcome to McCrack</div>
+        <div id="room-header">Welcome</div>
         <div id="chat"></div>
         <div id="input-area">
-            <input id="message-input" placeholder="Join a room to start chatting..." disabled>
+            <input id="message-input" placeholder="Join a room..." disabled>
             <button id="sendBtn" disabled>Send</button>
         </div>
     </div>
@@ -98,10 +95,10 @@
 
 <div id="room-modal" class="modal">
     <div class="modal-content">
-        <h3 id="modal-title">Room</h3>
-        <input id="room-name-input" placeholder="Enter room name...">
+        <h3 id="modal-title" style="color:#00aaff">Room</h3>
+        <input id="room-name-input" placeholder="Room name...">
         <button id="confirmRoomBtn" class="confirm-btn">Confirm & Enter</button>
-        <button onclick="closeModal()" class="cancel-btn">Go Back</button>
+        <button onclick="closeModal()" class="cancel-btn">Cancel</button>
     </div>
 </div>
 
@@ -126,25 +123,29 @@
     const nameInput = document.getElementById("user-display-name");
     const recentRoomsList = document.getElementById("recent-rooms-list");
 
-// --- RECENT ROOMS LOGIC ---
+    function updateStatus(isOnline) {
+        if(isOnline) {
+            statusDisplay.innerText = "System: Online (Live)";
+            statusDisplay.className = "status-online";
+        } else {
+            statusDisplay.innerText = "System: Offline";
+            statusDisplay.className = "status-offline";
+        }
+    }
+
     function renderRecentRooms() {
         const savedRooms = JSON.parse(localStorage.getItem("myRooms") || "[]");
         recentRoomsList.innerHTML = "";
-        
         savedRooms.forEach(roomName => {
             const btn = document.createElement("button");
             btn.className = "room-history-btn";
             btn.innerText = "# " + roomName;
             btn.onclick = () => {
-                // Fill the room name
                 roomInput.value = roomName;
-                
-                // If the user already has a display name, just join immediately
                 if (nameInput.value.trim() !== "") {
-                    window.modalMode = "join"; // Ensure it checks if room exists
+                    window.modalMode = "join";
                     document.getElementById("confirmRoomBtn").click();
                 } else {
-                    // If no name, open the modal so they can enter one
                     openModal("Join Room", "join");
                     roomInput.value = roomName;
                 }
@@ -155,14 +156,13 @@
 
     function saveRoomLocally(roomName) {
         let savedRooms = JSON.parse(localStorage.getItem("myRooms") || "[]");
-        // Remove if exists (to move it to the top)
         savedRooms = savedRooms.filter(r => r !== roomName);
-        savedRooms.unshift(roomName); 
-        
-        if(savedRooms.length > 8) savedRooms.pop(); // Show up to 8 rooms
+        savedRooms.unshift(roomName);
+        if(savedRooms.length > 5) savedRooms.pop();
         localStorage.setItem("myRooms", JSON.stringify(savedRooms));
         renderRecentRooms();
     }
+
     function clearRecentRooms() {
         localStorage.removeItem("myRooms");
         renderRecentRooms();
@@ -170,19 +170,14 @@
 
     renderRecentRooms();
 
-    // --- SYSTEM CHECK ---
     async function checkSystem() {
         try {
             const { error } = await _supabase.from('rooms').select('name').limit(1);
-            if (error) throw error;
-            statusDisplay.innerText = "System: Online (Live)";
-        } catch (e) {
-            statusDisplay.innerText = "System: Offline";
-        }
+            updateStatus(!error);
+        } catch (e) { updateStatus(false); }
     }
     checkSystem();
 
-    // --- MODAL LOGIC ---
     function openModal(title, mode) {
         window.modalMode = mode;
         document.getElementById("modal-title").innerText = title;
@@ -192,53 +187,43 @@
 
     function closeModal() { roomModal.classList.remove('show'); roomInput.value = ""; }
 
-    document.getElementById("createBtn").onclick = () => openModal("Create a New Room", "create");
-    document.getElementById("joinBtn").onclick = () => openModal("Join Existing Room", "join");
+    document.getElementById("createBtn").onclick = () => openModal("Create New Room", "create");
+    document.getElementById("joinBtn").onclick = () => openModal("Join Room", "join");
 
     document.getElementById("confirmRoomBtn").onclick = async () => {
-        const r = roomInput.value.trim().toLowerCase(); // Lowercase for consistency
+        const r = roomInput.value.trim().toLowerCase();
         const u = nameInput.value.trim();
-        if(!r || !u) { alert("Please enter both your name and a room name!"); return; }
+        if(!r || !u) return;
 
         try {
             if (window.modalMode === "create") {
-                const { error } = await _supabase.from('rooms').insert([{ name: r }]);
-                if (error && error.code !== '23505') throw error; 
+                await _supabase.from('rooms').insert([{ name: r }]);
             } else {
                 const { data } = await _supabase.from('rooms').select('*').eq('name', r).maybeSingle();
                 if (!data) { alert("Room not found!"); return; }
             }
-            
             saveRoomLocally(r);
             activeRoom = r;
             myUsername = u;
             document.getElementById("room-header").innerText = "# " + r;
             msgInput.disabled = false;
             sendBtn.disabled = false;
-            msgInput.placeholder = `Message as ${u}...`;
             closeModal();
             connectToRoom();
-        } catch (err) {
-            alert("Database Error: " + err.message);
-        }
+        } catch (err) { alert("Database Error: " + err.message); }
     };
 
     async function connectToRoom() {
-        chatBox.innerHTML = "<p style='text-align:center; opacity:0.3; margin-top:20px;'>Fetching history...</p>";
+        chatBox.innerHTML = "<p style='text-align:center; opacity:0.3; margin-top:20px;'>Syncing...</p>";
         const { data } = await _supabase.from("messages").select("*").eq("room", activeRoom).order("created_at", { ascending: true });
         chatBox.innerHTML = "";
         if (data) data.forEach(msg => addMessage(msg));
 
         if(chatChannel) await _supabase.removeChannel(chatChannel);
-        
         chatChannel = _supabase.channel(`room_${activeRoom}`)
-            .on('postgres_changes', { 
-                event: 'INSERT', 
-                schema: 'public', 
-                table: 'messages', 
-                filter: `room=eq.${activeRoom}` 
-            }, payload => addMessage(payload.new))
-            .subscribe();
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room=eq.${activeRoom}` }, 
+                payload => addMessage(payload.new)
+            ).subscribe();
     }
 
     function addMessage(msg) {
@@ -262,4 +247,3 @@
 </script>
 </body>
 </html>
-
