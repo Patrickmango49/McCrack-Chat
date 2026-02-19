@@ -126,17 +126,28 @@
     const nameInput = document.getElementById("user-display-name");
     const recentRoomsList = document.getElementById("recent-rooms-list");
 
-    // --- RECENT ROOMS LOGIC ---
+// --- RECENT ROOMS LOGIC ---
     function renderRecentRooms() {
         const savedRooms = JSON.parse(localStorage.getItem("myRooms") || "[]");
         recentRoomsList.innerHTML = "";
+        
         savedRooms.forEach(roomName => {
             const btn = document.createElement("button");
             btn.className = "room-history-btn";
             btn.innerText = "# " + roomName;
             btn.onclick = () => {
+                // Fill the room name
                 roomInput.value = roomName;
-                document.getElementById("confirmRoomBtn").click();
+                
+                // If the user already has a display name, just join immediately
+                if (nameInput.value.trim() !== "") {
+                    window.modalMode = "join"; // Ensure it checks if room exists
+                    document.getElementById("confirmRoomBtn").click();
+                } else {
+                    // If no name, open the modal so they can enter one
+                    openModal("Join Room", "join");
+                    roomInput.value = roomName;
+                }
             };
             recentRoomsList.appendChild(btn);
         });
@@ -144,14 +155,14 @@
 
     function saveRoomLocally(roomName) {
         let savedRooms = JSON.parse(localStorage.getItem("myRooms") || "[]");
-        if (!savedRooms.includes(roomName)) {
-            savedRooms.unshift(roomName); // Add to top
-            if(savedRooms.length > 5) savedRooms.pop(); // Keep only last 5
-            localStorage.setItem("myRooms", JSON.stringify(savedRooms));
-            renderRecentRooms();
-        }
+        // Remove if exists (to move it to the top)
+        savedRooms = savedRooms.filter(r => r !== roomName);
+        savedRooms.unshift(roomName); 
+        
+        if(savedRooms.length > 8) savedRooms.pop(); // Show up to 8 rooms
+        localStorage.setItem("myRooms", JSON.stringify(savedRooms));
+        renderRecentRooms();
     }
-
     function clearRecentRooms() {
         localStorage.removeItem("myRooms");
         renderRecentRooms();
@@ -251,3 +262,4 @@
 </script>
 </body>
 </html>
+
