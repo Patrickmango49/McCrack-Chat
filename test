@@ -271,18 +271,20 @@
 
         if(chatChannel) await _supabase.removeChannel(chatChannel);
         
-        chatChannel = _supabase.channel(`room_${activeRoom}`)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room=eq.${activeRoom}` }, 
-                payload => addMessage(payload.new)
-            )
-            .on('broadcast', { event: 'typing' }, payload => {
-                if (payload.payload.user !== myUsername) {
-                    typingIndicator.innerText = `${payload.payload.user} is typing...`;
-                    clearTimeout(typingTimeout);
-                    typingTimeout = setTimeout(() => { typingIndicator.innerText = ""; }, 2000);
-                }
-            })
-            .subscribe();
+        chatChannel = _supabase.channel(`room_${activeRoom}`, {
+            config: { broadcast: { self: false } }
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room=eq.${activeRoom}` }, 
+            payload => addMessage(payload.new)
+        )
+        .on('broadcast', { event: 'typing' }, payload => {
+            if (payload.payload.user !== myUsername) {
+                typingIndicator.innerText = `${payload.payload.user} is typing...`;
+                clearTimeout(typingTimeout);
+                typingTimeout = setTimeout(() => { typingIndicator.innerText = ""; }, 2000);
+            }
+        })
+        .subscribe();
     }
 
     function addMessage(msg) {
@@ -291,8 +293,6 @@
         div.className = `message ${isMe ? 'mine' : ''}`;
         
         let content = msg.content;
-        
-        // Image Detection Logic
         const isUrl = content.startsWith("http");
         const hasImgExt = /\.(png|jpg|jpeg|gif|webp)/i.test(content);
         const isStoragePath = content.includes("chat-images");
@@ -317,32 +317,20 @@
         }
     };
 
-    // Upload functionality
     uploadBtn.onclick = () => fileInput.click();
     fileInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         uploadBtn.innerText = "...";
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${activeRoom}/${fileName}`;
-
         try {
-            const { data, error } = await _supabase.storage
-                .from('chat-images')
-                .upload(filePath, file);
-
+            const { error } = await _supabase.storage.from('chat-images').upload(filePath, file);
             if (error) throw error;
-
-            const { data: urlData } = _supabase.storage
-                .from('chat-images')
-                .getPublicUrl(filePath);
-
+            const { data: urlData } = _supabase.storage.from('chat-images').getPublicUrl(filePath);
             await _supabase.from("messages").insert([{ 
-                room: activeRoom, 
-                username: myUsername, 
-                content: urlData.publicUrl 
+                room: activeRoom, username: myUsername, content: urlData.publicUrl 
             }]);
         } catch (err) {
             alert("Upload failed: " + err.message);
