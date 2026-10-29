@@ -105,3 +105,31 @@ create policy "Users delete their own McCrack media"
     bucket_id = 'mcchat-user-media'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+
+-- Friend requests: a user can send requests and only the sender/recipient can read them.
+create table if not exists public.friend_requests (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references auth.users(id) on delete cascade,
+  recipient_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending','accepted','declined')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint friend_requests_not_self check (sender_id <> recipient_id),
+  constraint friend_requests_unique_pair unique (sender_id, recipient_id)
+);
+alter table public.friend_requests enable row level security;
+grant select, insert, update, delete on public.friend_requests to authenticated;
+drop policy if exists "Users can see their own friend requests" on public.friend_requests;
+create policy "Users can see their own friend requests" on public.friend_requests
+  for select to authenticated using (auth.uid() = sender_id or auth.uid() = recipient_id);
+drop policy if exists "Users can send friend requests as themselves" on public.friend_requests;
+create policy "Users can send friend requests as themselves" on public.friend_requests
+  for insert to authenticated with check (auth.uid() = sender_id and status = 'pending');
+drop policy if exists "Recipients can respond to friend requests" on public.friend_requests;
+create policy "Recipients can respond to friend requests" on public.friend_requests
+  for update to authenticated using (auth.uid() = recipient_id)
+  with check (auth.uid() = recipient_id and status in ('accepted','declined'));
+drop policy if exists "Senders can cancel pending friend requests" on public.friend_requests;
+create policy "Senders can cancel pending friend requests" on public.friend_requests
+  for delete to authenticated using (auth.uid() = sender_id and status = 'pending');
