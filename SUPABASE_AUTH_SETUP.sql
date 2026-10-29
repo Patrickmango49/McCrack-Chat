@@ -243,13 +243,7 @@ create policy "DM participants can upload attachments" on storage.objects for in
    where c.id::text = (storage.foldername(name))[1] and auth.uid() in (c.user_a,c.user_b)
  ));
 
--- Realtime updates for private messages and presence-backed profile changes.
-do $$ begin
-  alter publication supabase_realtime add table public.dm_messages;
-exception when duplicate_object then null; when undefined_object then null; end $$;
-do $$ begin
-  alter publication supabase_realtime add table public.friend_requests;
-exception when duplicate_object then null; when undefined_object then null; end $$;
-do $$ begin
-  alter publication supabase_realtime add table public.profiles;
-exception when duplicate_object then null; when undefined_object then null; end $$;
+-- Realtime setup is intentionally not done with DO blocks here.
+-- In Supabase Dashboard, open Database -> Publications -> supabase_realtime
+-- and enable these tables: public.dm_messages, public.friend_requests, public.profiles.
+-- This avoids SQL editor delimiter/parser issues and is safe to repeat.
