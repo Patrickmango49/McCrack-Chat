@@ -136,7 +136,7 @@ body{background:radial-gradient(ellipse at 12% 0%,rgba(var(--accent-rgb),.075),t
 (function(){
 "use strict";
 const SUPABASE_URL="https://agcrweayleevlkgcmqpy.supabase.co";
-const REAL_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGciOiJIUzI1NiIsInJlZiI6ImFnY3J3ZWF5bGVldmxrZ2NtcXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MzI5ODcsImV4cCI6MjA4NzEwODk4N30.6ROZmRjDORSrfHP9yeZ_ofRHueHnq5K-C9c_jjxqBwQ";
+const REAL_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFnY3J3ZWF5bGVldmxrZ2NtcXB5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MzI5ODcsImV4cCI6MjA4NzEwODk4N30.6ROZmRjDORSrfHP9yeZ_ofRHueHnq5K-C9c_jjxqBwQ";
 const $=id=>document.getElementById(id);
 const safeGet=(key,fallback)=>{try{const v=localStorage.getItem(key);return v===null?fallback:JSON.parse(v)}catch(e){return fallback}};
 const safeSet=(key,value)=>{try{localStorage.setItem(key,JSON.stringify(value));return true}catch(e){toast("Storage is full. Try a smaller profile image or remove saved data.",true);return false}};
