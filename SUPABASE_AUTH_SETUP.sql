@@ -244,9 +244,12 @@ create policy "DM participants can upload attachments" on storage.objects for in
  ));
 
 -- Realtime updates for private messages and presence-backed profile changes.
-do $$
-begin
+do $ begin
   alter publication supabase_realtime add table public.dm_messages;
-exception when duplicate_object then null;
-when undefined_object then null;
-end $$;
+exception when duplicate_object then null; when undefined_object then null; end $;
+do $ begin
+  alter publication supabase_realtime add table public.friend_requests;
+exception when duplicate_object then null; when undefined_object then null; end $;
+do $ begin
+  alter publication supabase_realtime add table public.profiles;
+exception when duplicate_object then null; when undefined_object then null; end $;
