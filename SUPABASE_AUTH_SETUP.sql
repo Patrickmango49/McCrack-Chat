@@ -133,3 +133,9 @@ create policy "Recipients can respond to friend requests" on public.friend_reque
 drop policy if exists "Senders can cancel pending friend requests" on public.friend_requests;
 create policy "Senders can cancel pending friend requests" on public.friend_requests
   for delete to authenticated using (auth.uid() = sender_id and status = 'pending');
+
+drop policy if exists "Users can remove accepted friendships" on public.friend_requests;
+create policy "Users can remove accepted friendships" on public.friend_requests
+  for delete to authenticated using (
+    status = 'accepted' and (auth.uid() = sender_id or auth.uid() = recipient_id)
+  );
