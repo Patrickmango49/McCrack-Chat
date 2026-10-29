@@ -101,7 +101,36 @@ body.light-theme .profile-preview,body.light-theme .contact-row{background:rgba(
 .profile-banner-preview{height:90px;border-radius:14px;background:linear-gradient(120deg,rgba(var(--accent-rgb),.55),rgba(120,90,210,.2));background-size:cover;background-position:center;margin-bottom:12px}
 body.bubble-soft .dm-msg,body.bubble-soft .message-bubble{border-radius:20px}body.bubble-square .dm-msg,body.bubble-square .message-bubble{border-radius:7px}body.bubble-classic .dm-msg,body.bubble-classic .message-bubble{border-radius:4px}#openNotifications{position:relative}
 @media(max-width:650px){.dm-layout{grid-template-columns:1fr;min-height:0}.dm-people{max-height:150px;display:flex;gap:5px;overflow-x:auto}.dm-person{min-width:150px;width:auto}.dm-thread{min-height:330px}.dm-thread-messages{max-height:38vh}.dm-thread-head{padding:10px}.dm-compose{padding:8px}.dm-compose textarea{font-size:16px}.dm-layout .dm-thread{min-width:0}}
-@media(max-width:520px){.friend-row{align-items:flex-start;flex-wrap:wrap}.friend-row-actions{width:100%;padding-left:48px}}\n</style>
+@media(max-width:520px){.friend-row{align-items:flex-start;flex-wrap:wrap}.friend-row-actions{width:100%;padding-left:48px}}\n/* Refined profile experience */
+#profileOverlay>.modal{width:min(620px,calc(100vw - 28px));max-height:min(90vh,900px);padding:clamp(18px,3vw,28px);border-radius:24px;background:var(--panel);box-shadow:0 28px 90px rgba(0,0,0,.28)}
+#profileOverlay .modal-head{margin-bottom:18px}
+#profileOverlay .modal-head h2{font-size:21px;letter-spacing:-.65px}
+#profileOverlay .modal-head p{font-size:12px;line-height:1.5}
+#profileOverlay .profile-banner-preview{height:150px;position:relative;overflow:hidden;border-radius:19px;margin:0 0 -34px;background:radial-gradient(ellipse at 18% 15%,rgba(255,255,255,.34),transparent 35%),linear-gradient(125deg,rgba(var(--accent-rgb),.95),rgba(var(--accent-rgb),.42) 48%,rgba(125,91,220,.65));box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+#profileOverlay .profile-preview{position:relative;margin:0 12px 22px;padding:0 12px 12px;background:transparent;align-items:flex-end;gap:13px}
+#profileOverlay .profile-preview .avatar{width:82px;height:82px;min-width:82px;border:4px solid var(--panel);box-shadow:0 8px 24px rgba(0,0,0,.2);font-size:25px}
+#profileOverlay #profilePreviewName{display:block;font-size:17px;letter-spacing:-.35px;margin-bottom:4px}
+#profileOverlay .profile-preview .file-note{font-size:11px;line-height:1.4}
+#profileOverlay .form-grid{gap:15px}
+#profileOverlay .field label{font-size:11px;font-weight:750;letter-spacing:.02em}
+#profileOverlay .field input:not([type=file]),#profileOverlay .field textarea{border-radius:13px;padding:12px 13px;background:var(--app);transition:border-color .18s,box-shadow .18s}
+#profileOverlay .field input:focus,#profileOverlay .field textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13)}
+#profileOverlay .field input[type=file]{width:100%;padding:12px;border:1px dashed var(--line);border-radius:13px;background:var(--app);font-size:11px}
+#profileOverlay .file-note{font-size:10px;line-height:1.5}
+#profileOverlay .account-card{margin-top:19px;border-radius:16px;padding:15px;background:linear-gradient(135deg,rgba(var(--accent-rgb),.10),var(--app));border:1px solid var(--line)}
+#profileOverlay .account-card strong{font-size:13px}
+#profileOverlay .account-card p{font-size:11px;line-height:1.5}
+#profileOverlay .modal-actions{position:sticky;bottom:-28px;padding:14px 0 0;margin-top:20px;background:var(--panel)}
+#profileOverlay .modal-actions button{min-height:42px;border-radius:12px;padding-inline:18px}
+#dmProfileDetails{padding:0 14px 13px;background:linear-gradient(180deg,rgba(var(--accent-rgb),.055),transparent);border-bottom:1px solid var(--line)}
+#dmProfileDetails .dm-profile-banner{height:88px;border-radius:13px;margin:0 -1px 11px;background-image:radial-gradient(ellipse at 15% 20%,rgba(255,255,255,.22),transparent 35%),linear-gradient(120deg,rgba(var(--accent-rgb),.65),rgba(120,90,210,.24));box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+#dmProfileStatus{display:inline-flex;align-items:center;max-width:100%;padding:5px 9px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--ink);font-size:10px;font-weight:700}
+#dmProfileBio{font-size:12px;line-height:1.6;margin-top:9px;color:var(--muted)}
+#dmHeaderAvatar{box-shadow:0 0 0 2px var(--panel),0 0 0 3px rgba(var(--accent-rgb),.3)}
+.profile-trigger .avatar{box-shadow:0 0 0 2px var(--panel),0 0 0 3px var(--line)}
+@media(max-width:520px){#profileOverlay>.modal{max-height:94vh;padding:17px;border-radius:20px}#profileOverlay .profile-banner-preview{height:120px}#profileOverlay .profile-preview .avatar{width:70px;height:70px;min-width:70px}}
+
+</style>
 </head>
 <body>
 <div class="app">
