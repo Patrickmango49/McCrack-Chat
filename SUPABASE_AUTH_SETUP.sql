@@ -139,3 +139,112 @@ create policy "Users can remove accepted friendships" on public.friend_requests
   for delete to authenticated using (
     status = 'accepted' and (auth.uid() = sender_id or auth.uid() = recipient_id)
   );
+
+
+-- Extended profiles, private DMs, presence, notifications, and private attachments.
+alter table public.profiles add column if not exists bio text not null default '';
+alter table public.profiles add column if not exists banner_url text;
+alter table public.profiles add column if not exists last_seen_at timestamptz;
+alter table public.profiles add column if not exists is_online boolean not null default false;
+grant update (bio, banner_url, last_seen_at, is_online) on public.profiles to authenticated;
+
+create table if not exists public.private_conversations (
+  id uuid primary key default gen_random_uuid(),
+  user_a uuid not null references auth.users(id) on delete cascade,
+  user_b uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  last_message_at timestamptz not null default now(),
+  constraint private_conversations_distinct_users check (user_a <> user_b),
+  constraint private_conversations_sorted_pair check (user_a < user_b),
+  constraint private_conversations_unique_pair unique (user_a, user_b)
+);
+alter table public.private_conversations enable row level security;
+grant select, insert, update on public.private_conversations to authenticated;
+drop policy if exists "Participants can view private conversations" on public.private_conversations;
+create policy "Participants can view private conversations" on public.private_conversations
+ for select to authenticated using (auth.uid() = user_a or auth.uid() = user_b);
+drop policy if exists "Friends can create private conversations" on public.private_conversations;
+create policy "Friends can create private conversations" on public.private_conversations
+ for insert to authenticated with check (
+   (auth.uid() = user_a or auth.uid() = user_b) and exists (
+     select 1 from public.friend_requests f
+     where f.status = 'accepted'
+       and ((f.sender_id = user_a and f.recipient_id = user_b)
+         or (f.sender_id = user_b and f.recipient_id = user_a))
+   )
+ );
+drop policy if exists "Participants can update private conversations" on public.private_conversations;
+create policy "Participants can update private conversations" on public.private_conversations
+ for update to authenticated using (auth.uid() = user_a or auth.uid() = user_b)
+ with check (auth.uid() = user_a or auth.uid() = user_b);
+
+create table if not exists public.dm_messages (
+  id uuid primary key default gen_random_uuid(),
+  conversation_id uuid not null references public.private_conversations(id) on delete cascade,
+  sender_id uuid not null references auth.users(id) on delete cascade,
+  content text not null default '',
+  attachment_path text,
+  attachment_name text,
+  attachment_type text,
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  constraint dm_message_has_content check (length(content) <= 4000)
+);
+create index if not exists dm_messages_conversation_created_idx
+ on public.dm_messages(conversation_id, created_at);
+alter table public.dm_messages enable row level security;
+grant select, insert, update on public.dm_messages to authenticated;
+drop policy if exists "Conversation participants can read DMs" on public.dm_messages;
+create policy "Conversation participants can read DMs" on public.dm_messages
+ for select to authenticated using (exists (
+   select 1 from public.private_conversations c
+   where c.id = conversation_id and auth.uid() in (c.user_a,c.user_b)
+ ));
+drop policy if exists "Participants can send their own DMs" on public.dm_messages;
+create policy "Participants can send their own DMs" on public.dm_messages
+ for insert to authenticated with check (
+   sender_id = auth.uid() and exists (
+     select 1 from public.private_conversations c
+     where c.id = conversation_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ );
+drop policy if exists "Recipients can mark DMs read" on public.dm_messages;
+create policy "Recipients can mark DMs read" on public.dm_messages
+ for update to authenticated using (
+   auth.uid() <> sender_id and exists (
+     select 1 from public.private_conversations c
+     where c.id = conversation_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ ) with check (
+   auth.uid() <> sender_id and exists (
+     select 1 from public.private_conversations c
+     where c.id = conversation_id and auth.uid() in (c.user_a,c.user_b)
+   )
+ );
+
+-- Keep file uploads private: object names begin with the conversation UUID.
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values ('mcchat-private-files','mcchat-private-files',false,15728640,
+ array['image/jpeg','image/png','image/webp','image/gif','image/avif','application/pdf','text/plain','application/zip'])
+on conflict (id) do update set public=false,file_size_limit=15728640,
+ allowed_mime_types=array['image/jpeg','image/png','image/webp','image/gif','image/avif','application/pdf','text/plain','application/zip'];
+drop policy if exists "DM participants can read attachments" on storage.objects;
+create policy "DM participants can read attachments" on storage.objects for select to authenticated
+ using (bucket_id='mcchat-private-files' and exists (
+   select 1 from public.private_conversations c
+   where c.id::text = (storage.foldername(name))[1] and auth.uid() in (c.user_a,c.user_b)
+ ));
+drop policy if exists "DM participants can upload attachments" on storage.objects;
+create policy "DM participants can upload attachments" on storage.objects for insert to authenticated
+ with check (bucket_id='mcchat-private-files' and exists (
+   select 1 from public.private_conversations c
+   where c.id::text = (storage.foldername(name))[1] and auth.uid() in (c.user_a,c.user_b)
+ ));
+
+-- Realtime updates for private messages and presence-backed profile changes.
+do $$
+begin
+  alter publication supabase_realtime add table public.dm_messages;
+exception when duplicate_object then null;
+when undefined_object then null;
+end $$;
