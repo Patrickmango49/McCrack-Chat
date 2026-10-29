@@ -382,7 +382,7 @@
                 statusDisplay.innerText = "System: Online";
                 statusDisplay.className = "status-online";
             }
-        } catch (e) { statusDisplay.className = "status-offline"; }
+        } catch (e) { statusDisplay.innerText = "System: Offline"; statusDisplay.className = "status-offline"; }
     }
     checkSystem();
 
@@ -401,14 +401,24 @@
     document.getElementById("confirmRoomBtn").onclick = async () => {
         const r = roomInput.value.trim().toLowerCase();
         const u = nameInput.value.trim();
-        if(!r || !u) return;
-
+        const confirmBtn = document.getElementById("confirmRoomBtn");
+        if (!u) { nameInput.focus(); alert("Enter a username first."); return; }
+        if (!r) { roomInput.focus(); alert("Enter a room name."); return; }
+        if (r.length > 40 || !/^[a-z0-9][a-z0-9 _-]*$/.test(r)) {
+            alert("Room names can use letters, numbers, spaces, hyphens, and underscores (up to 40 characters).");
+            return;
+        }
+        if (u.length > 40) { alert("Usernames must be 40 characters or fewer."); return; }
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Connecting…";
         try {
             if (window.modalMode === "create") {
-                await _supabase.from('rooms').insert([{ name: r }]);
+                const { error } = await _supabase.from("rooms").insert([{ name: r }]);
+                if (error) throw error;
             } else {
-                const { data } = await _supabase.from('rooms').select('*').eq('name', r).maybeSingle();
-                if (!data) { alert("Room not found!"); return; }
+                const { data, error } = await _supabase.from("rooms").select("name").eq("name", r).maybeSingle();
+                if (error) throw error;
+                if (!data) { alert("Room not found. Check the name or create a new room."); return; }
             }
             saveRoomLocally(r);
             activeRoom = r;
@@ -417,10 +427,23 @@
             msgInput.disabled = false;
             sendBtn.disabled = false;
             uploadBtn.disabled = false;
+            msgInput.placeholder = "Message #" + r + "…";
             closeModal();
-            connectToRoom();
-        } catch (err) { alert("Error: " + err.message); }
+            await connectToRoom();
+        } catch (err) {
+            alert("Couldn't enter the room: " + (err.message || "Please try again."));
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = "Confirm & Enter";
+        }
     };
+
+    roomInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") document.getElementById("confirmRoomBtn").click();
+        if (e.key === "Escape") closeModal();
+    });
+    roomModal.addEventListener("click", e => { if (e.target === roomModal) closeModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && roomModal.style.display === "flex") closeModal(); });
 
     async function connectToRoom() {
         chatBox.innerHTML = "<p style='text-align:center; opacity:0.3; margin-top:20px;'>Syncing...</p>";
@@ -538,9 +561,19 @@
 
     async function send() {
         const text = msgInput.value.trim();
-        if(!text) return;
-        msgInput.value = "";
-        await _supabase.from("messages").insert([{ room: activeRoom, username: myUsername, content: text }]);
+        if (!text || !activeRoom || !myUsername) return;
+        if (text.length > 4000) { alert("Messages must be 4,000 characters or fewer."); return; }
+        sendBtn.disabled = true;
+        try {
+            const { error } = await _supabase.from("messages").insert([{ room: activeRoom, username: myUsername, content: text }]);
+            if (error) throw error;
+            msgInput.value = "";
+        } catch (err) {
+            alert("Message wasn't sent: " + (err.message || "Check your connection and try again."));
+        } finally {
+            sendBtn.disabled = false;
+            msgInput.focus();
+        }
     }
 
     sendBtn.onclick = send;
