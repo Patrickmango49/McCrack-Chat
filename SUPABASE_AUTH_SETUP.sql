@@ -159,7 +159,8 @@ create table if not exists public.private_conversations (
   constraint private_conversations_unique_pair unique (user_a, user_b)
 );
 alter table public.private_conversations enable row level security;
-grant select, insert, update on public.private_conversations to authenticated;
+grant select, insert on public.private_conversations to authenticated;
+grant update (last_message_at) on public.private_conversations to authenticated;
 drop policy if exists "Participants can view private conversations" on public.private_conversations;
 create policy "Participants can view private conversations" on public.private_conversations
  for select to authenticated using (auth.uid() = user_a or auth.uid() = user_b);
@@ -193,7 +194,8 @@ create table if not exists public.dm_messages (
 create index if not exists dm_messages_conversation_created_idx
  on public.dm_messages(conversation_id, created_at);
 alter table public.dm_messages enable row level security;
-grant select, insert, update on public.dm_messages to authenticated;
+grant select, insert on public.dm_messages to authenticated;
+grant update (read_at) on public.dm_messages to authenticated;
 drop policy if exists "Conversation participants can read DMs" on public.dm_messages;
 create policy "Conversation participants can read DMs" on public.dm_messages
  for select to authenticated using (exists (
