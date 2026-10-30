@@ -185,7 +185,8 @@ function cleanup(showToast){
  setCallButtons();if(showToast)toast("Call ended");
 }
 async function pollIncoming(){
- if(!currentUser()||call.session||call.incoming)return;
+ if(!currentUser()||call.session)return;
+ if(call.incoming){const {data:active}=await db.from("call_sessions").select("status").eq("id",call.incoming.id).maybeSingle();if(!active||active.status!=="ringing"){hideIncoming();call.incoming=null}return}
  const {data,error}=await db.from("call_sessions").select("*").eq("callee_id",currentUser().id).eq("status","ringing").order("created_at",{ascending:false}).limit(1);
  if(error){if(!/relation .* does not exist/i.test(error.message||""))console.warn("Incoming call check:",error.message);return}
  const row=data&&data[0];if(!row||row.id===call.lastIncomingId)return;
