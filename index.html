@@ -265,6 +265,21 @@ body.bubble-soft .dm-msg,body.bubble-soft .message-bubble{border-radius:20px}bod
  #dmWorkspace .dm-compose{padding:5px 8px}
 }
 
+
+/* Compact DM header: give the conversation the full viewport */
+#dmWorkspace{padding:0!important;gap:0!important}
+#dmWorkspaceMount{min-height:0;height:100%}
+#dmWorkspace .dm-layout{height:100%;min-height:0}
+#dmWorkspace .dm-thread-head{gap:9px}
+#dmWorkspace .dm-thread-head .dm-back-rooms{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;flex:0 0 auto;padding:8px 10px;font-size:11px}
+#dmWorkspace .dm-thread-head #enableNotificationsBtn{margin-left:0!important;flex:0 0 auto;white-space:nowrap}
+@media(max-width:520px){
+ #dmWorkspace .dm-thread-head{gap:6px}
+ #dmWorkspace .dm-thread-head .dm-back-rooms{padding:7px 8px;font-size:10px}
+ #dmWorkspace .dm-thread-head #enableNotificationsBtn{padding:7px 8px!important;font-size:10px!important}
+ #dmWorkspace .dm-thread-head #enableNotificationsBtn:after{font-size:10px}
+}
+
 </style>
 </head>
 <body>
@@ -309,7 +324,7 @@ body.bubble-soft .dm-msg,body.bubble-soft .message-bubble{border-radius:20px}bod
     <div class="composer-hint">Enter to send · Shift + Enter for a new line</div>
   </div>
   <section id="dmWorkspace" aria-label="Private messages">
-    <div class="dm-workspace-head"><div><h2>Private messages</h2><p>Your one-to-one conversations with friends.</p></div><button class="secondary-btn" id="closeDMWorkspace" type="button"><i class="fa-solid fa-arrow-left"></i> Back to rooms</button></div>
+    
     <div id="dmWorkspaceMount"></div>
   </section>
 </main>
@@ -356,7 +371,7 @@ body.bubble-soft .dm-msg,body.bubble-soft .message-bubble{border-radius:20px}bod
   <div class="setting-row"><div><strong>Messages loaded</strong><small>Recent history fetched for this room</small></div><span id="infoMessageCount">0</span></div>
   <div class="modal-actions"><button class="secondary-btn" id="forgetRoomBtn">Remove from my list</button><button class="primary-btn close-overlay">Done</button></div>
 </div></div>
-<div class="overlay" id="dmOverlay" role="dialog" aria-modal="true" aria-labelledby="dmTitle"><div class="modal wide"><div class="modal-head"><div><h2 id="dmTitle">Private messages</h2><p>One-to-one conversations with accepted friends.</p></div><button class="icon-btn close-overlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div><div class="dm-layout"><div><div class="section-label" style="padding-left:8px">Friends</div><div class="dm-people" id="dmPeople"><div class="friend-empty">Loading friends…</div></div></div><div class="dm-thread"><div class="dm-thread-head"><button class="icon-btn dm-friends-toggle" id="dmToggleFriends" type="button" title="Show friends" aria-label="Show friends" aria-expanded="false"><i class="fa-solid fa-users"></i></button><button class="icon-btn" id="dmHeaderAvatar" type="button" title="View profile" aria-label="View friend profile"><span class="avatar">?</span></button><div><strong id="dmHeaderName">Choose a friend</strong><small id="dmHeaderStatus">Your private conversation</small></div><button class="secondary-btn" id="enableNotificationsBtn" type="button" style="margin-left:auto;padding:8px;font-size:11px">Enable alerts</button></div><div class="dm-profile-details hidden" id="dmProfileDetails"><div class="dm-profile-banner" id="dmProfileBanner"></div><div class="dm-profile-identity"><span class="avatar" id="dmProfileAvatar">?</span><div><div class="dm-profile-name" id="dmProfileName">Friend</div><div class="dm-profile-handle" id="dmProfileHandle">@username</div></div></div><div class="dm-profile-meta"><div id="dmProfileStatus"></div></div><div class="dm-profile-bio" id="dmProfileBio"></div></div><div class="dm-thread-messages" id="dmMessages"><div class="friend-empty">Select a friend to start a private conversation.</div></div><div class="dm-compose"><input type="file" id="dmFileInput" hidden><button class="icon-btn" id="dmAttachBtn" type="button" title="Attach a file" aria-label="Attach a file"><i class="fa-solid fa-paperclip"></i></button><textarea id="dmInput" rows="1" maxlength="4000" placeholder="Message privately…" disabled></textarea><button class="primary-btn" id="dmSendBtn" type="button" disabled><i class="fa-solid fa-arrow-up"></i></button></div></div></div></div></div>
+<div class="overlay" id="dmOverlay" role="dialog" aria-modal="true" aria-labelledby="dmTitle"><div class="modal wide"><div class="modal-head"><div><h2 id="dmTitle">Private messages</h2><p>One-to-one conversations with accepted friends.</p></div><button class="icon-btn close-overlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div><div class="dm-layout"><div><div class="section-label" style="padding-left:8px">Friends</div><div class="dm-people" id="dmPeople"><div class="friend-empty">Loading friends…</div></div></div><div class="dm-thread"><div class="dm-thread-head"><button class="icon-btn dm-friends-toggle" id="dmToggleFriends" type="button" title="Show friends" aria-label="Show friends" aria-expanded="false"><i class="fa-solid fa-users"></i></button><button class="icon-btn" id="dmHeaderAvatar" type="button" title="View profile" aria-label="View friend profile"><span class="avatar">?</span></button><div><strong id="dmHeaderName">Choose a friend</strong><small id="dmHeaderStatus">Your private conversation</small></div><button class="secondary-btn dm-back-rooms" id="closeDMWorkspace" type="button" title="Back to rooms"><i class="fa-solid fa-arrow-left"></i><span>Back to rooms</span></button><button class="secondary-btn" id="enableNotificationsBtn" type="button" style="margin-left:auto;padding:8px;font-size:11px">Enable alerts</button></div><div class="dm-profile-details hidden" id="dmProfileDetails"><div class="dm-profile-banner" id="dmProfileBanner"></div><div class="dm-profile-identity"><span class="avatar" id="dmProfileAvatar">?</span><div><div class="dm-profile-name" id="dmProfileName">Friend</div><div class="dm-profile-handle" id="dmProfileHandle">@username</div></div></div><div class="dm-profile-meta"><div id="dmProfileStatus"></div></div><div class="dm-profile-bio" id="dmProfileBio"></div></div><div class="dm-thread-messages" id="dmMessages"><div class="friend-empty">Select a friend to start a private conversation.</div></div><div class="dm-compose"><input type="file" id="dmFileInput" hidden><button class="icon-btn" id="dmAttachBtn" type="button" title="Attach a file" aria-label="Attach a file"><i class="fa-solid fa-paperclip"></i></button><textarea id="dmInput" rows="1" maxlength="4000" placeholder="Message privately…" disabled></textarea><button class="primary-btn" id="dmSendBtn" type="button" disabled><i class="fa-solid fa-arrow-up"></i></button></div></div></div></div></div>
 <div class="overlay" id="notificationsOverlay" role="dialog" aria-modal="true" aria-labelledby="notificationsTitle"><div class="modal"><div class="modal-head"><div><h2 id="notificationsTitle">Notifications</h2><p>Friend requests and private message activity.</p></div><button class="icon-btn close-overlay" aria-label="Close"><i class="fa-solid fa-xmark"></i></button></div><div id="notificationsList" class="friend-empty">Sign in to receive notifications.</div><div class="modal-actions"><button class="secondary-btn" id="requestBrowserAlerts" type="button">Enable browser notifications</button><button class="primary-btn close-overlay">Done</button></div></div></div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Image preview"><button class="icon-btn" id="closeLightbox" aria-label="Close image"><i class="fa-solid fa-xmark"></i></button><img id="lightboxImage" alt="Full-size chat attachment"></div>
 <div class="toast-stack" id="toastStack" aria-live="polite"></div>
