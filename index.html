@@ -323,6 +323,23 @@ body.bubble-soft .dm-msg,body.bubble-soft .message-bubble{border-radius:20px}bod
  #dmWorkspace .dm-thread-head #enableNotificationsBtn:after{font-size:10px}
 }
 
+/* Final profile polish overrides */
+#profileOverlay .profile-banner-preview{height:174px!important;border-radius:18px!important;margin:0 0 -30px!important;mask-image:linear-gradient(to bottom,#000 0%,#000 62%,rgba(0,0,0,.72) 82%,transparent 100%)!important;-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 62%,rgba(0,0,0,.72) 82%,transparent 100%)!important;background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important}
+#profileOverlay .profile-preview{z-index:1;margin:0 13px 12px!important;padding:0 12px!important;align-items:flex-end!important;gap:14px!important}
+#profileOverlay .profile-preview .avatar{width:88px!important;height:88px!important;min-width:88px!important;font-size:27px!important;border-width:4px!important}
+#profileOverlay .profile-preview-copy{display:flex;flex-direction:column;gap:5px;min-width:0;padding-bottom:7px}
+#profileOverlay #profilePreviewName{font-size:19px!important;font-weight:780;letter-spacing:-.55px}
+#profileOverlay .profile-view-meta{font-size:12px;color:var(--muted)}
+#profileOverlay .profile-view-details{margin:0 3px 4px!important;padding:17px 18px!important;border-radius:17px;background:var(--app)}
+#profileOverlay .profile-view-details p{font-size:13px;line-height:1.7}
+#profileOverlay #profileVisibilityNote{padding-top:10px;border-top:1px solid var(--line)}
+#profileOverlay .profile-edit-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+#profileOverlay .profile-edit-fields .field.full{grid-column:1/-1}
+#profileOverlay .account-card{margin-top:16px}
+#profileOverlay .modal-actions{position:static;bottom:auto;padding-top:14px;margin-top:16px}
+#profileOverlay .modal-actions button{flex:1}
+#profileOverlay.is-editing .profile-preview{margin-bottom:18px!important}
+@media(max-width:520px){#profileOverlay .profile-banner-preview{height:145px!important}#profileOverlay .profile-preview .avatar{width:74px!important;height:74px!important;min-width:74px!important}#profileOverlay .profile-edit-fields{grid-template-columns:1fr}#profileOverlay .profile-edit-fields .field.full{grid-column:auto}}
 </style>
 </head>
 <body>
