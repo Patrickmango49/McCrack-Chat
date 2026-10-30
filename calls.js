@@ -138,7 +138,7 @@ async function startCall(mode){
   if(call.statusPoll)clearInterval(call.statusPoll);
   call.statusPoll=setInterval(checkActiveSession,1800);
   setTimeout(()=>{if(call.session?.id===row.id&&call.session.status==="ringing"){db.from("call_sessions").update({status:"missed",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false);toast("No answer")}},45000);
- }catch(e){console.error(e);toast("Could not start call: "+(e.message||"check permissions and Supabase setup"),true);cleanup(false)}
+ }catch(e){console.error(e);if(call.session)await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",call.session.id);toast("Could not start call: "+(e.message||"check permissions and Supabase setup"),true);cleanup(false)}
 }
 async function checkActiveSession(){
  if(!call.session)return;
