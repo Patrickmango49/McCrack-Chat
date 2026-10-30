@@ -580,6 +580,7 @@ function startNotificationFeeds(){if(!state.user||!db)return;stopNotificationFee
 
 $("dmToggleFriends").addEventListener("click",()=>{const layout=$("dmWorkspaceMount").querySelector(".dm-layout");if(!layout)return;const shown=layout.classList.toggle("show-dm-people");const b=$("dmToggleFriends");b.setAttribute("aria-expanded",String(shown));b.title=shown?"Hide friends":"Show friends";b.setAttribute("aria-label",shown?"Hide friends":"Show friends")});
 window.McCrackChat={db,state,toast,$};
+window.McCrackChatDM=dmState;
 setInterval(()=>{if(!state.channel)checkSystem()},45000);
 })();
 </script>
