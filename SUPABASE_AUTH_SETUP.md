@@ -29,3 +29,28 @@ The website includes account sign-up/sign-in, password reset, profile syncing, a
 - Friend requests are supported by this first version. A friend list does not automatically create private conversations; messaging friends privately is a separate feature to build.
 - Existing room chat itself still uses its current room/username model. Accounts and friend requests do not yet enforce that every chat message belongs to an authenticated user.
 - If the website is hosted at more than one URL, add each exact URL used for sign-in/password recovery to Supabase's Redirect URLs.
+
+
+## Voice and video calls
+
+The DM header now has separate **voice call** and **video call** buttons. Calls are one-to-one and require both people to have signed in, accepted the friend request, and opened the private conversation.
+
+1. Open SUPABASE_CALLS_SETUP.sql in this repository.
+2. In Supabase, open **SQL Editor → New query**, paste the entire file, and click **Run**.
+3. Open **Database → Publications → supabase_realtime** and enable public.call_sessions and public.call_signals.
+4. Make sure the browser site is served over HTTPS (GitHub Pages already uses HTTPS).
+5. Open a DM with a friend and test a voice call, then a video call. Allow microphone/camera permissions when prompted.
+
+### How calling works
+
+- Supabase Auth identifies the caller and recipient.
+- Supabase Postgres stores call invitations and protects call signalling with row-level security.
+- Supabase Realtime delivers signalling changes, with a polling fallback.
+- WebRTC carries live audio/video directly between the two browsers. Supabase does **not** receive or store the media stream.
+- The browser asks for microphone permission for voice calls and microphone + camera permission for video calls.
+
+### Network compatibility
+
+The client currently uses public STUN servers for direct connection discovery. Some school, work, mobile, or restrictive networks require a TURN relay. Supabase does not provide a TURN media relay as part of Realtime. If calls fail to connect across certain networks, configure a TURN provider and add its short-lived credentials in calls.js under ICE_SERVERS. Never put a permanent service secret in the public website.
+
+Calls are currently one-to-one. Group calls would need a media server/SFU rather than simply adding more peer connections. The browser must remain open for incoming calls; background push/ringing when the site is fully closed is not included in this first implementation.
