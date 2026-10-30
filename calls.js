@@ -123,14 +123,10 @@ async function startCall(mode){
  if(call.session){toast("You're already in a call.",true);return}
  const friend=api.state.user&&$("dmHeaderName").textContent.trim();
  // Resolve the friend from the currently open private conversation.
- const {data:convo,error:ce}=await db.from("private_conversations").select("id,user_a,user_b").or("user_a.eq."+currentUser().id+",user_b.eq."+currentUser().id).order("created_at",{ascending:false}).limit(20);
- if(ce)throw ce;
- const match=(convo||[]).find(c=>c.user_a===currentUser().id||c.user_b===currentUser().id);
- if(!match){toast("Could not identify this private conversation. Reopen the DM and try again.",true);return}
- const peerId=match.user_a===currentUser().id?match.user_b:match.user_a;
- // The visible friend profile is the source of truth for the active thread; use its ID when available.
- const dmFriendId=window.McCrackChatDMFriendId;
- const calleeId=dmFriendId||peerId;
+ const activeDM=window.McCrackChatDM;
+ const match=activeDM?.conversation;
+ const calleeId=activeDM?.friend?.id;
+ if(!match||!calleeId){toast("Open a private conversation with a friend first.",true);return}
  try{
   const {data:row,error}=await db.from("call_sessions").insert({conversation_id:match.id,caller_id:currentUser().id,callee_id:calleeId,mode,status:"ringing"}).select("*").single();
   if(error)throw error;
