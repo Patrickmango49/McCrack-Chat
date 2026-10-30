@@ -112,8 +112,8 @@ function subscribeSignals(){
  call.channel=db.channel("call-signals-"+call.session.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"call_signals",filter:"call_id=eq."+call.session.id},payload=>processSignal(payload.new)).subscribe(status=>{if(status==="CHANNEL_ERROR"||status==="TIMED_OUT")console.warn("Call realtime channel:",status)});
  call.seen.clear();call.pendingIce=[];
  syncSignals();
- if(call.poll)clearInterval(call.poll);
- call.poll=setInterval(syncSignals,1400);
+ if(call.signalPoll)clearInterval(call.signalPoll);
+ call.signalPoll=setInterval(syncSignals,1400);
 }
 async function startCall(mode){
  if(!currentUser()||!api.state.user){toast("Sign in before calling.",true);return}
@@ -135,8 +135,8 @@ async function startCall(mode){
   call.localStream=await acquireMedia(mode);$("localCallVideo").srcObject=call.localStream;
   await createPeer();const offer=await call.pc.createOffer();await call.pc.setLocalDescription(offer);subscribeSignals();await signal("offer",call.pc.localDescription.toJSON());
   toast("Calling "+(profile?.display_name||profile?.username||"friend")+"…");
-  call.poll&&clearInterval(call.poll);
-  call.poll=setInterval(checkActiveSession,1800);
+  if(call.statusPoll)clearInterval(call.statusPoll);
+  call.statusPoll=setInterval(checkActiveSession,1800);
   setTimeout(()=>{if(call.session?.id===row.id&&call.session.status==="ringing"){db.from("call_sessions").update({status:"missed",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false);toast("No answer")}},45000);
  }catch(e){console.error(e);toast("Could not start call: "+(e.message||"check permissions and Supabase setup"),true);cleanup(false)}
 }
@@ -156,7 +156,7 @@ async function acceptIncoming(){
   const profile=await getProfile(row.caller_id);showActive(profile);
   call.localStream=await acquireMedia(call.mode);$("localCallVideo").srcObject=call.localStream;
   await createPeer();subscribeSignals();await syncSignals();
-  call.poll=setInterval(checkActiveSession,1800);
+  if(call.statusPoll)clearInterval(call.statusPoll);call.statusPoll=setInterval(checkActiveSession,1800);
  }catch(e){console.error(e);toast("Could not answer call: "+(e.message||"check camera/microphone permissions"),true);await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false)}
  call.incoming=null;
 }
@@ -170,7 +170,8 @@ async function endCall(remote){
  cleanup(false);
 }
 function cleanup(showToast){
- stopDuration();if(call.poll)clearInterval(call.poll);call.poll=null;
+ stopDuration();if(call.signalPoll)clearInterval(call.signalPoll);call.signalPoll=null;
+ if(call.statusPoll)clearInterval(call.statusPoll);call.statusPoll=null;
  if(call.channel){db.removeChannel(call.channel);call.channel=null}
  if(call.pc){call.pc.ontrack=null;call.pc.onicecandidate=null;call.pc.onconnectionstatechange=null;try{call.pc.close()}catch(e){}}
  call.pc=null;
