@@ -162,7 +162,7 @@ async function checkActiveSession(){
 }
 async function acquireAvailableMedia(mode){
  const missing=[];
- try{return await acquireMedia(mode)}catch(e){
+ try{return {stream:await acquireMedia(mode),missing:[]}}catch(e){
   if(e?.name!=="NotFoundError"&&e?.name!=="DevicesNotFoundError")throw e;
  }
  if(mode==="video"){
