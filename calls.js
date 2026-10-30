@@ -67,14 +67,15 @@ async function createPeer(){
 }
 async function acquireMedia(mode){
  const constraints={audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:mode==="video"?{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24,max:30},facingMode:"user"}:false};
- try{return await navigator.mediaDevices.getUserMedia(constraints)}
- catch(e){
-  if(mode==="video"&&e.name!=="NotAllowedError"&&e.name!=="NotFoundError"){
-   toast("Camera unavailable. You can still use voice if the microphone is available.",true);
-   return await navigator.mediaDevices.getUserMedia({audio:constraints.audio,video:false});
-  }
-  throw e;
- }
+ return navigator.mediaDevices.getUserMedia(constraints);
+}
+function mediaErrorMessage(e,mode){
+ if(e?.name==="NotFoundError"||e?.name==="DevicesNotFoundError")return mode==="video"?"No microphone or camera was found on this device. Connect a microphone and camera, or try a voice call if a microphone is available.":"No microphone was found on this device. Connect a microphone to make a voice call.";
+ if(e?.name==="NotAllowedError"||e?.name==="PermissionDeniedError")return "Microphone/camera permission was blocked. Allow access in your browser's site settings, then try again.";
+ if(e?.name==="NotReadableError"||e?.name==="TrackStartError")return "Your microphone or camera is already being used by another app, or the device could not be started.";
+ if(e?.name==="OverconstrainedError")return "The selected microphone or camera doesn't support the requested settings.";
+ if(e?.name==="SecurityError")return "Calls need a secure HTTPS connection and microphone/camera permissions.";
+ return e?.message||"Check your microphone and camera permissions.";
 }
 async function startDuration(){
  if(call.durationTimer)return;
@@ -128,17 +129,19 @@ async function startCall(mode){
  const calleeId=activeDM?.friend?.id;
  if(!match||!calleeId){toast("Open a private conversation with a friend first.",true);return}
  try{
+  // Check local devices and permissions before creating an invitation in Supabase.
+  call.localStream=await acquireMedia(mode);
   const {data:row,error}=await db.from("call_sessions").insert({conversation_id:match.id,caller_id:currentUser().id,callee_id:calleeId,mode,status:"ringing"}).select("*").single();
   if(error)throw error;
   call.session=row;call.mode=mode;setCallButtons();setCallMode(mode);
   const profile=await getProfile(calleeId);showActive(profile);updateCallStatus("Calling…");
-  call.localStream=await acquireMedia(mode);$("localCallVideo").srcObject=call.localStream;
+  $("localCallVideo").srcObject=call.localStream;
   await createPeer();const offer=await call.pc.createOffer();await call.pc.setLocalDescription(offer);subscribeSignals();await signal("offer",call.pc.localDescription.toJSON());
   toast("Calling "+(profile?.display_name||profile?.username||"friend")+"…");
   if(call.statusPoll)clearInterval(call.statusPoll);
   call.statusPoll=setInterval(checkActiveSession,1800);
   setTimeout(()=>{if(call.session?.id===row.id&&call.session.status==="ringing"){db.from("call_sessions").update({status:"missed",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false);toast("No answer")}},45000);
- }catch(e){console.error(e);if(call.session)await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",call.session.id);toast("Could not start call: "+(e.message||"check permissions and Supabase setup"),true);cleanup(false)}
+ }catch(e){console.error(e);if(call.session)await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",call.session.id);toast("Could not start call: "+mediaErrorMessage(e,mode),true);cleanup(false)}
 }
 async function checkActiveSession(){
  if(!call.session)return;
@@ -151,13 +154,14 @@ async function acceptIncoming(){
  const row=call.incoming;if(!row||call.session)return;
  hideIncoming();call.session=row;call.mode=row.mode||"video";setCallMode(call.mode);
  try{
+  // Do not mark the invitation accepted until this device has granted media access.
+  call.localStream=await acquireMedia(call.mode);
   const {error}=await db.from("call_sessions").update({status:"accepted",accepted_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing");
   if(error)throw error;
-  const profile=await getProfile(row.caller_id);showActive(profile);
-  call.localStream=await acquireMedia(call.mode);$("localCallVideo").srcObject=call.localStream;
+  const profile=await getProfile(row.caller_id);showActive(profile);$("localCallVideo").srcObject=call.localStream;
   await createPeer();subscribeSignals();await syncSignals();
   if(call.statusPoll)clearInterval(call.statusPoll);call.statusPoll=setInterval(checkActiveSession,1800);
- }catch(e){console.error(e);toast("Could not answer call: "+(e.message||"check camera/microphone permissions"),true);await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false)}
+ }catch(e){console.error(e);toast("Could not answer call: "+mediaErrorMessage(e,call.mode),true);await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false)}
  call.incoming=null;
 }
 async function declineIncoming(){
