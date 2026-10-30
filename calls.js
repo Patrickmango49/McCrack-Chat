@@ -63,7 +63,17 @@ async function createPeer(){
   else if(s==="failed"){updateCallStatus("Connection failed");toast("Could not establish the call. A TURN relay may be needed on this network.",true);endCall(true)}
  };
  call.pc.oniceconnectionstatechange=()=>{if(call.pc?.iceConnectionState==="disconnected")updateCallStatus("Reconnecting…")};
- if(call.localStream)call.localStream.getTracks().forEach(t=>call.pc.addTrack(t,call.localStream));
+ if(call.localStream){
+  const tracks=call.localStream.getTracks();
+  tracks.forEach(t=>call.pc.addTrack(t,call.localStream));
+  const hasAudio=tracks.some(t=>t.kind==="audio");
+  const hasVideo=tracks.some(t=>t.kind==="video");
+  if(!hasAudio)call.pc.addTransceiver("audio",{direction:"recvonly"});
+  if(call.mode==="video"&&!hasVideo)call.pc.addTransceiver("video",{direction:"recvonly"});
+ }else{
+  call.pc.addTransceiver("audio",{direction:"recvonly"});
+  if(call.mode==="video")call.pc.addTransceiver("video",{direction:"recvonly"});
+ }
 }
 async function acquireMedia(mode){
  const constraints={audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:mode==="video"?{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24,max:30},facingMode:"user"}:false};
@@ -150,16 +160,38 @@ async function checkActiveSession(){
  if(data.status==="accepted"){call.session.status="accepted";return}
  if(["declined","ended","missed","cancelled"].includes(data.status)){const status=data.status;cleanup(false);toast(status==="declined"?"Call declined":status==="missed"?"No answer":"Call ended")}
 }
+async function acquireAvailableMedia(mode){
+ const missing=[];
+ try{return await acquireMedia(mode)}catch(e){
+  if(e?.name!=="NotFoundError"&&e?.name!=="DevicesNotFoundError")throw e;
+ }
+ if(mode==="video"){
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});missing.push("camera");return {stream,missing}}catch(e){
+   if(e?.name!=="NotFoundError"&&e?.name!=="DevicesNotFoundError")throw e;
+  }
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{width:{ideal:1280},height:{ideal:720},facingMode:"user"}});missing.push("microphone");return {stream,missing}}catch(e){
+   if(e?.name!=="NotFoundError"&&e?.name!=="DevicesNotFoundError")throw e;
+  }
+  return {stream:null,missing:["microphone","camera"]};
+ }
+ return {stream:null,missing:["microphone"]};
+}
 async function acceptIncoming(){
  const row=call.incoming;if(!row||call.session)return;
  hideIncoming();call.session=row;call.mode=row.mode||"video";setCallMode(call.mode);
  try{
-  // Do not mark the invitation accepted until this device has granted media access.
-  call.localStream=await acquireMedia(call.mode);
+  // Accept with whichever local devices exist; receive-only media keeps the call usable without them.
+  const available=await acquireAvailableMedia(call.mode);
+  call.localStream=available.stream;
   const {error}=await db.from("call_sessions").update({status:"accepted",accepted_at:new Date().toISOString()}).eq("id",row.id).eq("status","ringing");
   if(error)throw error;
-  const profile=await getProfile(row.caller_id);showActive(profile);$("localCallVideo").srcObject=call.localStream;
+  const profile=await getProfile(row.caller_id);showActive(profile);
+  $("localCallVideo").srcObject=call.localStream;
   await createPeer();subscribeSignals();await syncSignals();
+  if(available.missing.length){
+   const missing=available.missing.join(" and ");
+   toast("Call connected, but no "+missing+" "+(available.missing.length===1?"is":"are")+" connected on this device.",true);
+  }
   if(call.statusPoll)clearInterval(call.statusPoll);call.statusPoll=setInterval(checkActiveSession,1800);
  }catch(e){console.error(e);toast("Could not answer call: "+mediaErrorMessage(e,call.mode),true);await db.from("call_sessions").update({status:"ended",ended_at:new Date().toISOString()}).eq("id",row.id);cleanup(false)}
  call.incoming=null;
